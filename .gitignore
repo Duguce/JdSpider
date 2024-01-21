@@ -1,6 +1,7 @@
 config.py
 .idea
 .vscode
-output
 __pycache__
-ds_collection/collection_01
+ids_collection/collection_01/
+resume_checkpoint.txt
+output/*.csv

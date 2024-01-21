@@ -14,12 +14,15 @@ from loguru import logger
 from com_spider import JDCommentSpider
 from qa_spider import JDQASpider
 
+import config
 
-def crawl_comments_and_qa(ids_collection_dir):
+
+def crawl_comments_and_qa(ids_collection_dir, output_dir):
     """Crawl comments and Q&A for the products in the specified directory.
 
     Args:
         ids_collection_dir (str): Path to the directory containing the JSON files.
+        output_dir (str): Path to the directory to store the output files.
 
     Returns:
         None
@@ -33,6 +36,10 @@ def crawl_comments_and_qa(ids_collection_dir):
     if not os.path.exists(ids_collection_dir):
         logger.error(f"Error: Directory '{ids_collection_dir}' not found.")
         return
+
+    # Create the output directory if it does not exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     # Get the list of files to process
     files_to_process = os.listdir(ids_collection_dir)
@@ -67,19 +74,27 @@ def crawl_comments_and_qa(ids_collection_dir):
                 with open(file_path, 'r', encoding='utf-8') as file:
                     data = json.load(file)
 
+                # Get the list of files in the output directory
+                output_files = os.listdir(output_dir)
+                # Remove the file extension from the filenames
+                output_files = [file.split('_')[1].split(
+                    '.')[0] for file in output_files if file.endswith('.csv')]
+
                 # Iterate over each product ID in the JSON
                 for product_info in list(data.values())[0]:
                     product_id = product_info["sku"]
 
+                    # Skip if the product ID has already been processed
+                    if product_id in output_files:
+                        continue
                     # Crawl comments for the current product ID
                     comment_spider.start_crawling(product_id)
 
-                    # Crawl Q&A for the current product ID
-                    qa_spider.start_crawling(product_id)
+                    # # Crawl Q&A for the current product ID
+                    # qa_spider.start_crawling(product_id)
 
-                    # Sleep for a random amount of time between 0.5 to 5 minutes
-                    time.sleep(random.randint(30, 300))
-
+                    # Sleep for a random amount of time between 0.5 to 3 minutes
+                    time.sleep(random.randint(30, 180))
 
                 # Save the checkpoint after successfully processing each file
                 with open(resume_checkpoint, 'a') as checkpoint_file:
@@ -91,5 +106,6 @@ def crawl_comments_and_qa(ids_collection_dir):
 
 if __name__ == '__main__':
 
-    IDS_COLLECTION_DIR = '.\ids_collection'
-    crawl_comments_and_qa(ids_collection_dir=IDS_COLLECTION_DIR)
+    IDS_COLLECTION_DIR = '.\ids_collection\collection_01'
+    crawl_comments_and_qa(
+        ids_collection_dir=IDS_COLLECTION_DIR, output_dir=config.DATA_PATH)
