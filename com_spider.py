@@ -40,9 +40,7 @@ class JDCommentSpider:
     """
 
     def __init__(self, comment_param=COMMENT_PARAM, product_id=None, data_path=DATA_PATH, max_workers=MAX_WORKERS):
-        self.comm_data = pd.DataFrame(
-            columns=['user_id', 'user_name', 'content', 'create_time', 'score', 'location', 'product_id',
-                     'product_name'])  # DataFrame to store product comments
+        self.comm_data = []  # list to store Q&A data
         self.comm_data_lock = threading.Lock()  # Thread lock
         self.max_workers = max_workers  # Maximum number of threads
         self.product_id = None  # Product ID (initialize as None)
@@ -127,8 +125,12 @@ class JDCommentSpider:
         Returns:
             None
         """
+        if len(comm_data) <= 1:  # Check if there's only the header row
+            logger.warning("No data to save. Skipping CSV file creation...")
+            return
+
         try:
-            comm_data.to_csv(f"{self.data_path}\com_{self.product_id}.csv", index=False)
+            comm_data.to_csv(f"{self.data_path}/com_{self.product_id}.csv", index=False)
             logger.info(
                 f"Saved comments for product ID {self.product_id} to file...")
         except Exception as e:
@@ -144,13 +146,26 @@ class JDCommentSpider:
         Returns:
             None
         """
+        # response = self.get_comments(page)
+        # comments = self.parse_comments(response)
+        # with self.comm_data_lock:
+        #     self.comm_data = pd.concat(
+        #         [self.comm_data, comments], ignore_index=True)
+
+        # time.sleep(random.uniform(1, 3))
         response = self.get_comments(page)
+        if not response:
+            logger.warning(f"No response received for page {page}. Skipping...")
+            return
         comments = self.parse_comments(response)
+        if comments.empty:
+            logger.warning(f"No comments data found for page {page}. Skipping...")
+            return
         with self.comm_data_lock:
             self.comm_data = pd.concat(
                 [self.comm_data, comments], ignore_index=True)
 
-        time.sleep(random.uniform(1, 3))
+        time.sleep(random.uniform(3, 5))
 
     def start_crawling(self, product_id):
         """Start crawling product comments.
@@ -165,7 +180,13 @@ class JDCommentSpider:
         self.product_id = product_id
         
         logger.info(f"Fetching comments for product ID {self.product_id}...")
-        # Using a thread pool
+        
+        # Clear comments data
+        self.comm_data = pd.DataFrame(
+                    columns=['user_id', 'user_name', 'content', 'create_time', 'score', 'location', 'product_id',
+                            'product_name'])
+
+        # Create a thread pool
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             for page in range(self.pages):  # Fetch pages
                 executor.submit(self.crawl_page, page)

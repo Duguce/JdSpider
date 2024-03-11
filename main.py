@@ -51,7 +51,6 @@ def crawl_comments_and_qa(ids_collection_dir, output_dir):
                 checkpoint_content = checkpoint_file.readlines()
             checkpoint_content = list(
                 map(lambda x: x.strip("\n"), checkpoint_content))
-            print(checkpoint_content)
 
             # Remove the files that have already been processed
             checkpoint_set = set(checkpoint_content)
@@ -79,6 +78,11 @@ def crawl_comments_and_qa(ids_collection_dir, output_dir):
                 # Remove the file extension from the filenames
                 output_files = [file.split('_')[1].split(
                     '.')[0] for file in output_files if file.endswith('.csv')]
+                
+                # Get the list of qa_files in the output directory
+                qa_files = os.listdir("./output/collection_02")
+                qa_files = [file.split('_')[1].split(
+                    '.')[0] for file in qa_files if file.endswith('.csv')]
 
                 # Iterate over each product ID in the JSON
                 for product_info in list(data.values())[0]:
@@ -87,11 +91,15 @@ def crawl_comments_and_qa(ids_collection_dir, output_dir):
                     # Skip if the product ID has already been processed
                     if product_id in output_files:
                         continue
+                    
+                    # if product_id not in qa_files:
+                    #     continue
+
                     # Crawl comments for the current product ID
                     comment_spider.start_crawling(product_id)
 
-                    # # Crawl Q&A for the current product ID
-                    # qa_spider.start_crawling(product_id)
+                    # Crawl Q&A for the current product ID
+                    qa_spider.start_crawling(product_id)
 
                     # Sleep for a random amount of time between 0.5 to 3 minutes
                     time.sleep(random.randint(30, 180))
@@ -106,6 +114,6 @@ def crawl_comments_and_qa(ids_collection_dir, output_dir):
 
 if __name__ == '__main__':
 
-    IDS_COLLECTION_DIR = '.\ids_collection\collection_01'
+    IDS_COLLECTION_DIR = './ids_collection/collection_02'
     crawl_comments_and_qa(
         ids_collection_dir=IDS_COLLECTION_DIR, output_dir=config.DATA_PATH)

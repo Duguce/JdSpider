@@ -3,5 +3,8 @@ config.py
 .vscode
 __pycache__
 ids_collection/collection_01/
+ids_collection/collection_02/
 resume_checkpoint.txt
 output/*.csv
+output/collection_01/*.csv
+output/collection_02/*.csv

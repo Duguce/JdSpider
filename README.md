@@ -26,11 +26,11 @@
 
 1. 准备环境
 
-   * `conda create -n jd_spider python=3.8.18`
+   - `conda create -n jd_spider python=3.8.18`
 
-   * `conda activate jd_spider`
+   - `conda activate jd_spider`
 
-   * `pip install -r requirements.txt`
+   - `pip install -r requirements.txt`
 
 2. 配置
 
@@ -47,5 +47,5 @@
 - [x] 根据关键词从京东主页批量抓取商品ID；
 - [x] 批量抓取商品评论&问答数据逻辑；
 - [x] `main.py`模块实现断点续爬；
-- [ ] `search_spider.py`模块中登录时的滑块验证实现自动化。
-
+- [ ] `search_spider.py`模块中登录时的滑块验证实现自动化；
+- [x] 优化`com_spider.py`和`qa_spider.py`模块中的存储逻辑；

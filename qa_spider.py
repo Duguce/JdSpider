@@ -47,9 +47,7 @@ class JDQASpider:
         """
         self.pages = qa_param['pages']  # Number of pages to scrape for Q&A
         self.product_id = None  # Product ID (initialize as None)
-        self.qa_data = pd.DataFrame(
-            columns=['id', 'question_content', 'product_id', 'created_time', 'answer_id',
-                     'answer_content', 'answer_created_time', 'location'])  # DataFrame to store Q&A data
+        self.qa_data = []  # list to store Q&A data
         self.qa_data_lock = threading.Lock()  # Thread lock
         self.data_path = data_path  # Data storage path
         self.max_workers = max_workers  # Maximum number of threads
@@ -81,7 +79,7 @@ class JDQASpider:
             str: The response data.
         """
         api_url = f'https://api.m.jd.com/?appid=item-v3&' \
-                  f'functionId=getQuestionAnswerList&page={page}&productId={self.product_id}'
+                  f'functionId=getQuestionAnswerList&client=pc&clientVersion=1.0.0&page={page}&productId={self.product_id}'
         response_data = self.send_request(api_url)
         logger.info(
             f"Fetching Q&A data for product ID {self.product_id}, page {page}...")
@@ -143,8 +141,12 @@ class JDQASpider:
         Returns:
             None
         """
+        if len(qa_data) <= 1:  # Check if there's only the header row
+            logger.warning("No data to save. Skipping CSV file creation...")
+            return
+
         try:
-            qa_data.to_csv(f"{self.data_path}\qa_{self.product_id}.csv", index=False)
+            qa_data.to_csv(f"{self.data_path}/qa_{self.product_id}.csv", index=False)
             logger.info(
                 f"Q&A data for product ID {self.product_id} saved to file...")
         except Exception as e:
@@ -160,8 +162,21 @@ class JDQASpider:
         Returns:
             None
         """
+        # response = self.get_qa(page)
+        # qa_data = self.parse_qa(response)
+        # with self.qa_data_lock:
+        #     self.qa_data = pd.concat(
+        #         [self.qa_data, qa_data], ignore_index=True)
+
+        # time.sleep(random.uniform(3, 5))
         response = self.get_qa(page)
+        if not response:
+            logger.warning(f"No response received for page {page}. Skipping...")
+            return
         qa_data = self.parse_qa(response)
+        if qa_data.empty:
+            logger.warning(f"No Q&A data found for page {page}. Skipping...")
+            return
         with self.qa_data_lock:
             self.qa_data = pd.concat(
                 [self.qa_data, qa_data], ignore_index=True)
@@ -183,6 +198,12 @@ class JDQASpider:
 
         logger.info(
             f"Start scraping Q&A data for product ID {self.product_id}...")
+        
+        # Clear qa_data
+        self.qa_data = pd.DataFrame(
+            columns=['id', 'question_content', 'product_id', 'created_time', 'answer_id',
+                    'answer_content', 'answer_created_time', 'location'])
+        
         # Create a thread pool
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             for page in range(1, self.pages + 1):
