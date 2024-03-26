@@ -101,7 +101,7 @@ class JDCommentSpider:
         for comment in comments:
             user_id = comment.get('id', '')
             user_name = comment.get('nickname', '')
-            content = comment.get('content', '')
+            content = comment.get('content', '').replace('\n', ' ')  # replace newline characters with spaces
             create_time = comment.get('creationTime', '')
             score = comment.get('score', '')
             location = comment.get('location', '')
