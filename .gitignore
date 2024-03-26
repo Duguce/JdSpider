@@ -2,9 +2,9 @@ config.py
 .idea
 .vscode
 __pycache__
-ids_collection/collection_01/
-ids_collection/collection_02/
+ids_collection/*
 resume_checkpoint.txt
-output/*.csv
-output/collection_01/*.csv
-output/collection_02/*.csv
+output/*
+
+# Mac OS
+.DS_Store
