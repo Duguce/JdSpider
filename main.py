@@ -80,7 +80,7 @@ def crawl_comments_and_qa(ids_collection_dir, output_dir):
                     '.')[0] for file in output_files if file.endswith('.csv')]
                 
                 # Get the list of qa_files in the output directory
-                qa_files = os.listdir("./output/collection_02")
+                qa_files = os.listdir(output_dir)
                 qa_files = [file.split('_')[1].split(
                     '.')[0] for file in qa_files if file.endswith('.csv')]
 
@@ -114,6 +114,5 @@ def crawl_comments_and_qa(ids_collection_dir, output_dir):
 
 if __name__ == '__main__':
 
-    IDS_COLLECTION_DIR = './ids_collection/collection_02'
     crawl_comments_and_qa(
-        ids_collection_dir=IDS_COLLECTION_DIR, output_dir=config.DATA_PATH)
+        ids_collection_dir=config.PRODUCT_ID_DIR, output_dir=config.DATA_PATH)
